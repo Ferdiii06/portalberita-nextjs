@@ -1,87 +1,18 @@
-import Link from 'next/link';
-
-const beritaDummy = [
-  {
-    id: 1,
-    judul: 'Judul Berita 1',
-    gambar: '/uploads/6814fca1d5a21.jpg',
-    pengirim: 'Admin',
-    tanggal: '2025-06-10T10:00:00',
-    kategori: 'Tekno',
-    isi: 'Isi singkat berita 1...',
-  },
-  // Tambahkan berita lain di sini
-];
+import { useContext } from 'react';
+import Header from '../components/Header';
+import NewsCard from '../components/NewsCard';
+import { NewsContext } from '../context/NewsContext';
 
 export default function Arsip() {
+  const { newsList } = useContext(NewsContext);
   return (
     <>
-      <header>
-        <div className="header-container">
-          <div className="logo">
-            <h1><i className="fas fa-newspaper"></i> Portal Berita</h1>
-          </div>
-          <nav>
-            <ul>
-              <li><Link href="/"><i className="fas fa-home"></i> Home</Link></li>
-              <li><Link href="/arsip"><i className="fas fa-archive"></i> Arsip</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-      <main className="container">
-        <h2><i className="fas fa-archive"></i> Arsip Berita</h2>
-        <div className="search-box">
-          <form>
-            <input type="text" placeholder="Cari berita..." />
-            <button type="submit"><i className="fas fa-search"></i></button>
-          </form>
-        </div>
-        <div className="berita-list">
-          {beritaDummy.map(berita => (
-            <article className="berita-item" key={berita.id}>
-              <img src={berita.gambar} alt="Gambar Berita" />
-              <h3>
-                <Link href={`/berita/${berita.id}`}>{berita.judul}</Link>
-              </h3>
-              <div className="meta-info">
-                <span><i className="far fa-user"></i> {berita.pengirim}</span>
-                <span><i className="far fa-calendar-alt"></i> {new Date(berita.tanggal).toLocaleString('id-ID')}</span>
-                <span><i className="far fa-folder"></i> {berita.kategori}</span>
-              </div>
-              <p>{berita.isi}</p>
-            </article>
-          ))}
-        </div>
-        <div className="pagination">
-          <a href="#" className="page-link active">1</a>
-          <a href="#" className="page-link">2</a>
-          <a href="#" className="page-link">3</a>
-        </div>
+      <Header />
+      <main className="container mx-auto p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {newsList.map((n) => (
+          <NewsCard key={n.id} news={n} />
+        ))}
       </main>
-      <Footer />
     </>
-  );
-}
-
-function Footer() {
-  return (
-    <footer>
-      <div className="footer-container">
-        <div className="footer-info">
-          <h3><i className="fas fa-newspaper"></i> Portal Berita</h3>
-          <p>Menyajikan berita terkini dan terpercaya</p>
-        </div>
-        <div className="footer-links">
-          <ul>
-            <li><Link href="/">Home</Link></li>
-            <li><Link href="/arsip">Arsip Berita</Link></li>
-          </ul>
-        </div>
-        <div className="footer-copyright">
-          <p>&copy; 2025 Portal Berita by Ferdii06. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
   );
 }

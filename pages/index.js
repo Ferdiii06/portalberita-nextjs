@@ -1,82 +1,51 @@
-import Link from 'next/link';
-
-const beritaDummy = [
-  {
-    id: 1,
-    judul: 'Judul Berita 1',
-    gambar: '/uploads/6814fca1d5a21.jpg',
-    pengirim: 'Admin',
-    tanggal: '2025-06-10T10:00:00',
-    kategori: 'Tekno',
-    headline: 'Ini adalah ringkasan/headline berita 1...',
-  },
-  // Tambahkan berita lain di sini
-];
+import { useContext, useState } from 'react';
+import Header from '../components/Header';
+import NewsCard from '../components/NewsCard';
+import Pagination from '../components/Pagination';
+import { NewsContext } from '../context/NewsContext';
 
 export default function Home() {
+  const { newsList } = useContext(NewsContext);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const perPage = 6;
+
+  const filtered = newsList.filter(n =>
+    n.judul.toLowerCase().includes(search.toLowerCase())
+  );
+  const total = Math.ceil(filtered.length / perPage);
+  const slice = filtered.slice((page - 1) * perPage, page * perPage);
+
   return (
     <>
-      <header>
-        <div className="header-container">
-          <div className="logo">
-            <h1><i className="fas fa-newspaper"></i> Portal Berita</h1>
-          </div>
-          <nav>
-            <ul>
-              <li><Link href="/"><i className="fas fa-home"></i> Home</Link></li>
-              <li><Link href="/arsip"><i className="fas fa-archive"></i> Arsip</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-      <main className="container">
-        <h1><i className="fas fa-newspaper"></i> Berita Terkini</h1>
-        <div className="berita-terbaru">
-          {beritaDummy.map(berita => (
-            <article className="berita-item" key={berita.id}>
-              <img src={berita.gambar} alt="Gambar Berita" />
-              <h2>
-                <Link href={`/berita/${berita.id}`}>{berita.judul}</Link>
-              </h2>
-              <div className="meta-info">
-                <span><i className="far fa-user"></i> {berita.pengirim}</span>
-                <span><i className="far fa-calendar-alt"></i> {new Date(berita.tanggal).toLocaleString('id-ID')}</span>
-                <span><i className="far fa-folder"></i> {berita.kategori}</span>
-              </div>
-              <div className="headline">
-                <p>{berita.headline}</p>
-              </div>
-              <Link href={`/berita/${berita.id}`} className="read-more">Baca selengkapnya...</Link>
-            </article>
-          ))}
-        </div>
-        <div className="more-news">
-          <Link href="/arsip" className="btn-more"><i className="fas fa-book-open"></i> Lihat Arsip Berita</Link>
-        </div>
-      </main>
-      <Footer />
-    </>
-  );
-}
-
-function Footer() {
-  return (
-    <footer>
-      <div className="footer-container">
-        <div className="footer-info">
-          <h3><i className="fas fa-newspaper"></i> Portal Berita</h3>
-          <p>Menyajikan berita terkini dan terpercaya</p>
-        </div>
-        <div className="footer-links">
-          <ul>
-            <li><Link href="/">Home</Link></li>
-            <li><Link href="/arsip">Arsip Berita</Link></li>
-          </ul>
-        </div>
-        <div className="footer-copyright">
-          <p>&copy; 2025 Portal Berita by Ferdii06. All rights reserved.</p>
+      <Header />
+      {/* Hero Section */}
+      <div className="hero-pattern bg-cover bg-center py-32 mb-12">
+        <div className="container mx-auto text-center text-black px-4">
+          <h1 className="text-5xl font-bold mb-4 drop-shadow-lg">Selamat Datang di Portal Berita</h1>
+          <p className="text-xl drop-shadow-md">Temukan berita terbaru di Portal Berita</p>
         </div>
       </div>
-    </footer>
+      <main className="container mx-auto px-4 py-8">
+        {/* Search Bar */}
+        <div className="flex justify-center mb-12">
+          <input
+            type="text"
+            placeholder="Cari berita..."
+            className="w-full max-w-lg p-4 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+          />
+        </div>
+        {/* Grid Berita */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {slice.map(news => (
+            <NewsCard key={news.id} news={news} />
+          ))}
+        </div>
+        {/* Pagination */}
+        {total > 1 && <Pagination page={page} total={total} onChange={setPage} />}
+      </main>
+    </>
   );
 }
