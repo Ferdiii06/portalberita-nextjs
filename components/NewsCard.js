@@ -1,18 +1,67 @@
-import { useContext } from 'react';
 import Link from 'next/link';
-import { NewsContext } from '../context/NewsContext';
+import { FiClock, FiEye } from 'react-icons/fi';
+import CategoryBadge from './CategoryBadge';
 
 export default function NewsCard({ news }) {
-  const { deleteNews } = useContext(NewsContext);
+  const imageSrc = news?.gambar || '/images/news-placeholder.svg';
+
   return (
-    <div className="bg-white rounded shadow p-4 flex flex-col">
-      {news.gambar && <img src={news.gambar} alt={news.judul} className="w-full h-40 object-cover rounded mb-4" />}
-      <h2 className="text-xl font-semibold mb-2 text-primary">{news.judul}</h2>
-      <p className="text-gray-500 text-sm mb-2">{new Date(news.tanggal).toLocaleString('id-ID')}</p>
-      <p className="flex-grow text-gray-700 mb-4">{news.headline}</p>
-      <div className="flex space-x-2">
-        <Link href={`/berita/${news.id}`} className="flex-grow bg-primary text-white py-2 px-4 rounded hover:bg-secondary text-center">Baca Selengkapnya</Link>
-        <button onClick={() => deleteNews(news.id)} className="bg-danger text-white py-2 px-4 rounded hover:opacity-80">Hapus</button>
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-300 flex flex-col h-full animate-slide-up">
+      <div className="relative h-56 overflow-hidden">
+        <img 
+          src={imageSrc}
+          alt={news?.judul || 'Berita'}
+          loading="eager"
+          decoding="async"
+          onError={(e) => {
+            e.currentTarget.src = '/images/news-placeholder.svg';
+          }}
+          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+        />
+        <div className="absolute top-4 left-4">
+          <CategoryBadge category={news.kategori} />
+        </div>
+      </div>
+      
+      <div className="p-6 flex flex-col flex-grow">
+        <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
+          <span className="flex items-center gap-1.5">
+            <FiClock /> {new Date(news.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+          <span className="flex items-center gap-1.5">
+            {news.waktuBaca} min read
+          </span>
+          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+          <span className="flex items-center gap-1.5 text-slate-500">
+            💬 {news._count?.comments ?? 0}
+          </span>
+        </div>
+        
+        <Link href={`/berita/${news.id}`}>
+          <h2 className="text-xl font-bold text-dark mb-3 line-clamp-2 hover:text-primary-600 transition-colors">
+            {news?.judul || 'Judul berita belum tersedia'}
+          </h2>
+        </Link>
+        
+        <p className="text-slate-600 text-sm line-clamp-3 mb-4 flex-grow">
+          {news?.headline || 'Informasi berita akan segera tersedia.'}
+        </p>
+
+        {news.comments?.[0] && (
+          <div className="rounded-3xl bg-slate-50 px-4 py-3 mb-6 text-sm text-slate-600 border border-slate-100">
+            <p className="font-semibold text-slate-800 line-clamp-1">Komentar terbaru:</p>
+            <p className="line-clamp-2 mt-2">"{news.comments[0].isi}"</p>
+            <p className="mt-2 text-xs text-slate-400">— {news.comments[0].nama}</p>
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+          <span className="text-sm font-medium text-slate-700">{news?.author || 'Portal Berita'}</span>
+          <span className="text-xs text-slate-400 flex items-center gap-1">
+            <FiEye /> {news?.views || 0}
+          </span>
+        </div>
       </div>
     </div>
   );

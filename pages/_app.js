@@ -1,12 +1,13 @@
-import '../styles/globals.css';
+// pages/_app.js
 import { NewsProvider } from '../context/NewsContext';
-import Footer from '../components/Footer';
+import '../styles/globals.css';
 
-export default function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
   return (
     <NewsProvider>
       <Component {...pageProps} />
-      <Footer />
     </NewsProvider>
   );
 }
+
+export default MyApp;

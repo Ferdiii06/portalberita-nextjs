@@ -1,0 +1,55 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model News {
+  id         String   @id @default(cuid())
+  guid       String   @unique
+  judul      String
+  headline   String   @db.Text
+  isi        String   @db.Text
+  gambar     String   @db.Text
+  gallery    String   @db.Text
+  kategori   String
+  author     String
+  tanggal    DateTime @default(now())
+  waktuBaca  Int      @default(1)
+  views      Int      @default(0)
+  createdAt  DateTime @default(now())
+  sourceName String?
+  sourceUrl  String?  @db.Text
+  
+  comments   Comment[]
+}
+
+model BreakingNews {
+  id        String   @id @default(cuid())
+  judul     String
+  newsId    String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  newsId     String
+  news       News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  nama       String
+  email      String?
+  isi        String   @db.Text
+  parentId   String?
+  parent     Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies    Comment[] @relation("CommentReplies")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isApproved Boolean  @default(true)
+  
+  @@index([newsId])
+  @@index([createdAt])
+}
