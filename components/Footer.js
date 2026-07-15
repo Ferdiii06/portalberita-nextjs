@@ -55,7 +55,7 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-slate-800/70 pt-8 text-sm text-slate-500">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <p>© {new Date().getFullYear()} Portal Berita. Semua hak dilindungi.</p>
+            <p>© {new Date().getFullYear()} Insight News. Semua hak dilindungi.</p>
             <p className="max-w-xl leading-6">Berita terkini setiap saat. Ikuti kami untuk update cepat dan ringkas.</p>
           </div>
         </div>
