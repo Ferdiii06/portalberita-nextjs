@@ -3,7 +3,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Header from '../components/Header';
 import { NewsContext } from '../context/NewsContext';
-import { FiExternalLink } from 'react-icons/fi';
 import CategoryBadge from '../components/CategoryBadge';
 
 export default function Arsip() {
@@ -63,8 +62,8 @@ export default function Arsip() {
                       </td>
                       <td className="p-5 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={`/berita/${item.id}`} className="p-2 text-slate-400 hover:text-primary-600 transition-colors bg-slate-100 hover:bg-primary-50 rounded-lg">
-                            <FiExternalLink size={18} />
+                          <Link href={`/berita/${item.id}`} className="p-2 text-slate-400 hover:text-primary-600 transition-colors bg-slate-100 hover:bg-primary-50 rounded-lg" aria-label="Lihat detail berita">
+                            ↗
                           </Link>
                         </div>
                       </td>

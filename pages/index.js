@@ -1,5 +1,6 @@
 // pages/index.js
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import Header from '../components/Header';
@@ -8,20 +9,55 @@ import TrendingSection from '../components/TrendingSection';
 import NewsCard from '../components/NewsCard';
 
 const categories = [
-  { id: 'semua', label: 'Semua', icon: '📰' },
-  { id: 'Berita', label: 'Berita', icon: '📢' },
-  { id: 'Teknologi', label: 'Teknologi', icon: '💻' },
-  { id: 'Olahraga', label: 'Olahraga', icon: '⚽' },
-  { id: 'Ekonomi', label: 'Ekonomi', icon: '💰' },
-  { id: 'Hiburan', label: 'Hiburan', icon: '🎬' }
+  { id: 'semua', label: 'Semua' },
+  { id: 'Berita', label: 'Berita' },
+  { id: 'Teknologi', label: 'Teknologi' },
+  { id: 'Olahraga', label: 'Olahraga' },
+  { id: 'Ekonomi', label: 'Ekonomi' },
+  { id: 'Hiburan', label: 'Hiburan' }
 ];
 
+function CategoryIcon({ id }) {
+  switch (id) {
+    case 'semua':
+      return <i className="bx bx-grid-alt mr-2 text-slate-600" aria-hidden="true" />;
+    case 'Berita':
+      return <i className="bx bx-news mr-2 text-slate-600" aria-hidden="true" />;
+    case 'Teknologi':
+      return <i className="bx bx-desktop mr-2 text-slate-600" aria-hidden="true" />;
+    case 'Olahraga':
+      return <i className="bx bx-trophy mr-2 text-slate-600" aria-hidden="true" />;
+    case 'Ekonomi':
+      return <i className="bx bx-bar-chart mr-2 text-slate-600" aria-hidden="true" />;
+    case 'Hiburan':
+      return <i className="bx bx-film mr-2 text-slate-600" aria-hidden="true" />;
+    default:
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      );
+  }
+}
+
 export default function Home() {
+  const router = useRouter();
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('semua');
   const [searchQuery, setSearchQuery] = useState('');
+  const [totalNews, setTotalNews] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(20);
+
+  useEffect(() => {
+    const { search } = router.query;
+    if (typeof search === 'string') {
+      setSearchQuery(search);
+    } else {
+      setSearchQuery('');
+    }
+  }, [router.query.search]);
 
   useEffect(() => {
     fetchNews({ forceRefresh: true });
@@ -58,14 +94,23 @@ export default function Home() {
     };
   }, []);
 
-  const fetchNews = async ({ forceRefresh = false } = {}) => {
+  const fetchNews = async ({ forceRefresh = false, take = 100 } = {}) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(`/api/news?refresh=${forceRefresh ? 'true' : 'false'}`);
+      const params = new URLSearchParams();
+      if (forceRefresh) params.set('refresh', 'true');
+      if (searchQuery.trim()) params.set('search', searchQuery.trim());
+      if (selectedCategory !== 'semua') params.set('category', selectedCategory);
+      // request up to `take` news items for the listing (server expects `take`)
+      params.set('take', String(take));
+
+      const res = await fetch(`/api/news?${params.toString()}`);
       const data = await res.json();
-      setNews(Array.isArray(data.news) ? data.news : []);
+      const list = Array.isArray(data.news) ? data.news : [];
+      setNews(list);
+      setTotalNews(typeof data.total === 'number' ? data.total : list.length);
     } catch (err) {
       setError(err.message || 'Gagal memuat berita terbaru');
       setNews([]);
@@ -74,10 +119,19 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    if (router.isReady) {
+      fetchNews({ forceRefresh: false });
+    }
+  }, [searchQuery, selectedCategory, router.isReady]);
+
   const filteredNews = news.filter((item) => {
     const matchCategory = selectedCategory === 'semua' || item.kategori === selectedCategory;
-    const matchSearch = item.judul?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.headline?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!searchQuery.trim()) return matchCategory;
+    const query = searchQuery.toLowerCase();
+    const matchSearch = item.judul?.toLowerCase().includes(query) ||
+      item.headline?.toLowerCase().includes(query);
     return matchCategory && matchSearch;
   });
 
@@ -157,7 +211,7 @@ export default function Home() {
                           key={cat.id}
                           onClick={() => setSelectedCategory(cat.id)}
                           className={`rounded-full border px-4 py-2 text-sm font-medium transition ${selectedCategory === cat.id ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}>
-                          {cat.icon} {cat.label}
+                          <CategoryIcon id={cat.id} /> {cat.label}
                         </button>
                       ))}
                     </div>
@@ -197,10 +251,10 @@ export default function Home() {
               </div>
 
               <button
-                onClick={() => fetchNews({ forceRefresh: true })}
+                onClick={() => fetchNews({ forceRefresh: true, take: 100 })}
                 className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
               >
-                🔄 Muat ulang berita
+                <i className="bx bx-refresh mr-2" aria-hidden="true" /> Muat ulang berita
               </button>
             </div>
 
@@ -216,11 +270,30 @@ export default function Home() {
                 <p className="mt-2">Coba ubah kategori atau gunakan kata kunci lain.</p>
               </div>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {filteredNews.map((item) => (
-                  <NewsCard key={item.id} news={item} />
-                ))}
-              </div>
+              <>
+                <div className="mb-4 text-sm text-slate-500">Menampilkan {Math.min(filteredNews.length, visibleCount)} dari {totalNews} berita</div>
+
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {filteredNews.slice(0, visibleCount).map((item) => (
+                    <NewsCard key={item.id} news={item} />
+                  ))}
+                </div>
+
+                {filteredNews.length > visibleCount && (
+                  <div className="mt-6 flex justify-center">
+                    <button
+                      onClick={() => {
+                        if (visibleCount === 20) setVisibleCount(50);
+                        else if (visibleCount === 50) setVisibleCount(100);
+                        else setVisibleCount(filteredNews.length);
+                      }}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      {`Muat lebih banyak (${Math.min(visibleCount, filteredNews.length)}/${totalNews})`}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </section>
         </main>

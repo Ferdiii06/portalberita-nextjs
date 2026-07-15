@@ -63,10 +63,14 @@ export default function BreakingNewsBanner() {
           border: 'none',
           color: 'white',
           cursor: 'pointer',
-          fontSize: '20px'
+          padding: 6,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}
+        aria-label="Tutup banner breaking news"
       >
-        ✕
+        <i className="bx bx-x" style={{ color: 'white', fontSize: 18 }} aria-hidden="true" />
       </button>
     </div>
   );

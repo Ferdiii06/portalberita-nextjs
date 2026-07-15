@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import CategoryBadge from './CategoryBadge';
-import { FiClock, FiUser } from 'react-icons/fi';
 
 export default function TrendingSection({ news }) {
   if (!news || news.length === 0) return null;
@@ -31,8 +30,8 @@ export default function TrendingSection({ news }) {
               </h3>
             </Link>
             <div className="flex items-center text-slate-300 text-sm gap-4">
-              <span className="flex items-center gap-1.5"><FiUser /> {topNews?.author || 'Portal Berita'}</span>
-              <span className="flex items-center gap-1.5"><FiClock /> {new Date(topNews?.tanggal || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              <span className="flex items-center gap-1.5">👤 {topNews?.author || 'Portal Berita'}</span>
+              <span className="flex items-center gap-1.5">📅 {new Date(topNews?.tanggal || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
             </div>
           </div>
         </div>
@@ -54,7 +53,7 @@ export default function TrendingSection({ news }) {
                   </h4>
                 </Link>
                 <div className="text-xs text-slate-500 mt-2 flex items-center gap-1">
-                  <FiClock /> {new Date(item?.tanggal || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                  📅 {new Date(item?.tanggal || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                 </div>
               </div>
             </div>

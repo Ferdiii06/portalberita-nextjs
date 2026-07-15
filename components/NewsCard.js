@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { FiClock, FiEye } from 'react-icons/fi';
 import CategoryBadge from './CategoryBadge';
 
 export default function NewsCard({ news }) {
@@ -26,15 +25,18 @@ export default function NewsCard({ news }) {
       <div className="p-6 flex flex-col flex-grow">
         <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
           <span className="flex items-center gap-1.5">
-            <FiClock /> {new Date(news.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            <i className="bx bx-calendar text-sm" aria-hidden="true" />
+            {new Date(news.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
-          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+          <span className="w-1 h-1 rounded-full bg-slate-300" />
           <span className="flex items-center gap-1.5">
-            {news.waktuBaca} min read
+            <i className="bx bx-time text-sm" aria-hidden="true" />
+            {news.waktuBaca} min
           </span>
-          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+          <span className="w-1 h-1 rounded-full bg-slate-300" />
           <span className="flex items-center gap-1.5 text-slate-500">
-            💬 {news._count?.comments ?? 0}
+            <i className="bx bx-comment text-sm" aria-hidden="true" />
+            {news._count?.comments ?? 0}
           </span>
         </div>
         
@@ -59,7 +61,7 @@ export default function NewsCard({ news }) {
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
           <span className="text-sm font-medium text-slate-700">{news?.author || 'Portal Berita'}</span>
           <span className="text-xs text-slate-400 flex items-center gap-1">
-            <FiEye /> {news?.views || 0}
+            <i className="bx bx-show text-sm" aria-hidden="true" /> {news?.views || 0}
           </span>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { FiFacebook, FiTwitter, FiInstagram, FiYoutube } from 'react-icons/fi';
 
 export default function Footer() {
   return (
@@ -14,18 +13,18 @@ export default function Footer() {
             <p className="max-w-sm leading-7 text-slate-400">
               Menyajikan berita terkini dari berbagai sumber terpercaya. Ikuti perkembangan nasional, internasional, ekonomi, teknologi, dan olahraga setiap hari.
             </p>
-            <div className="flex items-center gap-3">
-              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white">
-                <FiFacebook size={18} />
+            <div className="flex items-center gap-3 text-sm">
+              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white" aria-label="Facebook">
+                F
               </a>
-              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white">
-                <FiTwitter size={18} />
+              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white" aria-label="Twitter">
+                T
               </a>
-              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white">
-                <FiInstagram size={18} />
+              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white" aria-label="Instagram">
+                I
               </a>
-              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white">
-                <FiYoutube size={18} />
+              <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-slate-300 transition hover:bg-sky-500 hover:text-white" aria-label="YouTube">
+                Y
               </a>
             </div>
           </div>

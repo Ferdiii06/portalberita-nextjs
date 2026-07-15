@@ -10,8 +10,22 @@ export default async function handler(req, res) {
   try {
     const refresh = req.query.refresh === 'true' || req.query.refresh === '1';
     const take = Number(req.query.take) || 24;
+    const category = typeof req.query.category === 'string' ? req.query.category : undefined;
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : undefined;
+
+    const where = {};
+    if (category && category !== 'semua') {
+      where.kategori = category;
+    }
+    if (search) {
+      where.OR = [
+        { judul: { contains: search, mode: 'insensitive' } },
+        { headline: { contains: search, mode: 'insensitive' } }
+      ];
+    }
 
     const news = await prisma.news.findMany({
+      where,
       orderBy: { tanggal: 'desc' },
       take: Math.max(take, 6),
       include: {
