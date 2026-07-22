@@ -1,7 +1,9 @@
 // components/Comments.js
 import { useState, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Comments({ newsId }) {
+  const { theme } = useTheme();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -111,10 +113,12 @@ export default function Comments({ newsId }) {
     return `${Math.floor(diff / 86400)} hari lalu`;
   };
 
+  const styles = getStyles(theme);
+
   return (
     <div style={styles.container}>
       <h3 style={styles.title}>
-        💬 Diskusi ({total} komentar)
+        <i className="bx bx-comment-dots mr-2" aria-hidden="true" /> Diskusi ({total} komentar)
       </h3>
 
       {/* Form Komentar */}
@@ -163,7 +167,7 @@ export default function Comments({ newsId }) {
           style={styles.submitButton}
           disabled={submitting}
         >
-          {submitting ? 'Mengirim...' : '💬 Kirim Komentar'}
+          {submitting ? 'Mengirim...' : (<><i className="bx bx-comment-dots mr-2" aria-hidden="true" /> Kirim Komentar</>)}
         </button>
       </form>
 
@@ -180,7 +184,7 @@ export default function Comments({ newsId }) {
             <div key={comment.id} style={styles.commentItem}>
               <div style={styles.commentHeader}>
                 <span style={styles.commentAuthor}>
-                  👤 {comment.nama}
+                  <i className="bx bx-user mr-2" aria-hidden="true" /> {comment.nama}
                 </span>
                 <span style={styles.commentTime}>
                   {formatTime(comment.createdAt)}
@@ -195,20 +199,20 @@ export default function Comments({ newsId }) {
   );
 }
 
-const styles = {
+const getStyles = (theme) => ({
   container: {
     marginTop: '32px',
     paddingTop: '32px',
-    borderTop: '2px solid #f1f5f9'
+    borderTop: `2px solid ${theme === 'dark' ? '#334155' : '#f1f5f9'}`
   },
   title: {
     fontSize: '20px',
     fontWeight: 700,
-    color: '#0f172a',
+    color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
     marginBottom: '20px'
   },
   form: {
-    background: '#f8fafc',
+    background: theme === 'dark' ? '#1e293b' : '#f8fafc',
     padding: '20px',
     borderRadius: '12px',
     marginBottom: '24px'
@@ -227,25 +231,29 @@ const styles = {
   label: {
     fontSize: '14px',
     fontWeight: 600,
-    color: '#334155'
+    color: theme === 'dark' ? '#cbd5e1' : '#334155'
   },
   input: {
     padding: '10px 14px',
-    border: '1px solid #e2e8f0',
+    border: `1px solid ${theme === 'dark' ? '#475569' : '#e2e8f0'}`,
     borderRadius: '8px',
     fontSize: '14px',
     outline: 'none',
-    transition: 'border 0.2s'
+    transition: 'border 0.2s',
+    background: theme === 'dark' ? '#334155' : 'white',
+    color: theme === 'dark' ? '#f1f5f9' : '#0f172a'
   },
   textarea: {
     padding: '10px 14px',
-    border: '1px solid #e2e8f0',
+    border: `1px solid ${theme === 'dark' ? '#475569' : '#e2e8f0'}`,
     borderRadius: '8px',
     fontSize: '14px',
     outline: 'none',
     transition: 'border 0.2s',
     resize: 'vertical',
-    fontFamily: 'inherit'
+    fontFamily: 'inherit',
+    background: theme === 'dark' ? '#334155' : 'white',
+    color: theme === 'dark' ? '#f1f5f9' : '#0f172a'
   },
   submitButton: {
     padding: '10px 24px',
@@ -279,13 +287,13 @@ const styles = {
   loading: {
     textAlign: 'center',
     padding: '20px',
-    color: '#94a3b8'
+    color: theme === 'dark' ? '#64748b' : '#94a3b8'
   },
   empty: {
     textAlign: 'center',
     padding: '30px',
-    color: '#94a3b8',
-    background: '#f8fafc',
+    color: theme === 'dark' ? '#64748b' : '#94a3b8',
+    background: theme === 'dark' ? '#1e293b' : '#f8fafc',
     borderRadius: '12px'
   },
   commentsList: {
@@ -294,10 +302,10 @@ const styles = {
     gap: '16px'
   },
   commentItem: {
-    background: 'white',
+    background: theme === 'dark' ? '#1e293b' : 'white',
     padding: '16px',
     borderRadius: '12px',
-    border: '1px solid #f1f5f9'
+    border: `1px solid ${theme === 'dark' ? '#334155' : '#f1f5f9'}`
   },
   commentHeader: {
     display: 'flex',
@@ -307,17 +315,17 @@ const styles = {
   },
   commentAuthor: {
     fontWeight: 600,
-    color: '#0f172a',
+    color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
     fontSize: '14px'
   },
   commentTime: {
     fontSize: '12px',
-    color: '#94a3b8'
+    color: theme === 'dark' ? '#64748b' : '#94a3b8'
   },
   commentText: {
-    color: '#475569',
+    color: theme === 'dark' ? '#cbd5e1' : '#475569',
     fontSize: '15px',
     lineHeight: 1.6,
     marginBottom: '8px'
   }
-};
+});

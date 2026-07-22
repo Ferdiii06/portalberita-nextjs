@@ -1,33 +1,49 @@
 // pages/berita/[id].js
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
-import Comments from '../../components/Comments'; 
+import Comments from '../../components/Comments';
+import { useTheme } from '../../context/ThemeContext';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function BeritaDetail() {
   const router = useRouter();
   const { id } = router.query;
+  const beritaId = Array.isArray(id) ? id[0] : id;
   const [berita, setBerita] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scraping, setScraping] = useState(false);
+  const { theme } = useTheme();
+
+  // GSAP refs
+  const articleHeaderRef = useRef(null);
+  const articleImageRef = useRef(null);
+  const articleBodyRef = useRef(null);
+  const commentsRef = useRef(null);
 
   useEffect(() => {
-    if (id) {
-      fetchBerita();
-      incrementViews();
+    if (beritaId) {
+      fetchBerita(beritaId);
+      incrementViews(beritaId);
     }
-  }, [id]);
+  }, [beritaId]);
 
-  const fetchBerita = async () => {
+  const fetchBerita = async (newsId) => {
     try {
-      const res = await fetch(`/api/news/${id}`);
+      const res = await fetch(`/api/news/${newsId}`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setBerita(data);
       
-      // Jika konten kurang dari 500 karakter dan ada sourceUrl, scrape konten lengkap
       if (data.isi && data.isi.length < 500 && data.sourceUrl) {
         await scrapeContent(data.id, data.sourceUrl, data.sourceName);
       }
@@ -49,8 +65,7 @@ export default function BeritaDetail() {
       
       const result = await res.json();
       if (result.success) {
-        // Refresh data
-        const updated = await fetch(`/api/news/${id}`);
+        const updated = await fetch(`/api/news/${beritaId}`);
         const data = await updated.json();
         setBerita(data);
       }
@@ -61,13 +76,71 @@ export default function BeritaDetail() {
     }
   };
 
-  const incrementViews = async () => {
+  const incrementViews = async (newsId) => {
     try {
-      await fetch(`/api/news/${id}/view`, { method: 'POST' });
+      await fetch(`/api/news/${newsId}/view`, { method: 'POST' });
     } catch (err) {
       console.error('Error incrementing views:', err);
     }
   };
+
+  // GSAP: article entrance after data loads
+  useEffect(() => {
+    if (!berita || loading) return;
+    let ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      // Article header: badge + title + meta stagger
+      if (articleHeaderRef.current) {
+        const children = articleHeaderRef.current.children;
+        tl.from(children, { opacity: 0, y: 30, duration: 0.6, stagger: 0.1 });
+      }
+
+      // Image scale-in
+      if (articleImageRef.current) {
+        tl.from(articleImageRef.current, { opacity: 0, scale: 0.97, duration: 0.7 }, '-=0.3');
+      }
+
+      // Body paragraphs stagger
+      if (articleBodyRef.current) {
+        const paras = articleBodyRef.current.querySelectorAll('p');
+        if (paras.length > 0) {
+          gsap.from(paras, {
+            opacity: 0,
+            y: 20,
+            duration: 0.5,
+            ease: 'power2.out',
+            stagger: 0.05,
+            scrollTrigger: {
+              trigger: articleBodyRef.current,
+              start: 'top 85%',
+              once: true,
+            },
+          });
+        }
+      }
+
+      // Comments section fade-in
+      if (commentsRef.current) {
+        gsap.from(commentsRef.current, {
+          opacity: 0,
+          y: 30,
+          duration: 0.7,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: commentsRef.current,
+            start: 'top 88%',
+            once: true,
+          },
+        });
+      }
+    });
+
+    return () => ctx.revert();
+  }, [berita, loading]);
+
+
+  const styles = getStyles(theme);
 
   if (loading) {
     return (
@@ -81,13 +154,12 @@ export default function BeritaDetail() {
   if (error || !berita) {
     return (
       <div style={styles.errorContainer}>
-        <h1>😅 Berita tidak ditemukan</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><i className="bx bx-error-circle" style={{ fontSize: '32px' }}></i> Berita tidak ditemukan</h1>
         <Link href="/" style={styles.backButton}>Kembali ke Beranda</Link>
       </div>
     );
   }
 
-  // Format konten menjadi paragraf
   const paragraphs = berita.isi?.split('\n').filter(p => p.trim().length > 0) || [];
 
   return (
@@ -96,145 +168,117 @@ export default function BeritaDetail() {
         <title>{berita.judul} - Portal Berita</title>
         <meta name="description" content={berita.headline} />
       </Head>
-
-      <div style={styles.container}>
-        <Link href="/" style={styles.backLink}>← Kembali ke Beranda</Link>
-        
-        <article style={styles.article}>
-          <div style={styles.articleHeader}>
-            <span style={styles.articleCategory}>{berita.kategori || 'Umum'}</span>
-            <h1 style={styles.articleTitle}>{berita.judul}</h1>
-            <div style={styles.articleMeta}>
-              <span>✍️ {berita.author || berita.sourceName || 'Unknown'}</span>
-              <span>•</span>
-              <span>📅 {new Date(berita.tanggal).toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</span>
-              <span>•</span>
-              <span>🕐 {berita.waktuBaca || 1} menit baca</span>
+      <div style={styles.pageWrapper}>
+        <Header />
+        <main style={styles.container}>
+          <Link href="/" style={{ ...styles.backLink, display: 'flex', alignItems: 'center', gap: '6px' }}><i className="bx bx-arrow-back"></i> Kembali ke Beranda</Link>
+          
+          <article style={styles.article}>
+            <div ref={articleHeaderRef} style={styles.articleHeader}>
+              <span style={styles.articleCategory}>{berita.kategori || 'Umum'}</span>
+              <h1 style={styles.articleTitle}>{berita.judul}</h1>
+              <div style={styles.articleMeta}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><i className="bx bx-user"></i> {berita.author || berita.sourceName || 'Unknown'}</span>
+                <span>•</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><i className="bx bx-calendar"></i> {new Date(berita.tanggal).toLocaleDateString('id-ID', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</span>
+                <span>•</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><i className="bx bx-time-five"></i> {berita.waktuBaca || 1} menit baca</span>
+              </div>
             </div>
-          </div>
 
-          {berita.gambar && berita.gambar !== '' && (
-  <div style={styles.articleImageWrapper}>
-    <img 
-      src={berita.gambar} 
-      alt={berita.judul}
-      style={styles.articleImage}
-      onError={(e) => {
-        e.target.style.display = 'none';
-        // Tampilkan placeholder
-        const parent = e.target.parentElement;
-        parent.innerHTML = `
-          <div style="
-            width: 100%; 
-            height: 300px; 
-            background: #f1f5f9; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            font-size: 64px;
-            border-radius: 8px;
-          ">📰</div>
-        `;
-      }}
-    />
-  </div>
-)}
-
-          <div style={styles.articleContent}>
-            {scraping && (
-              <div style={styles.scrapingNotice}>
-                <span>🔄 Mengambil konten lengkap...</span>
+            {berita.gambar && berita.gambar !== '' && (
+              <div ref={articleImageRef} style={styles.articleImageWrapper}>
+                <img 
+                  src={berita.gambar} 
+                  alt={berita.judul}
+                  style={styles.articleImage}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    const parent = e.target.parentElement;
+                    parent.innerHTML = `<div style="width:100%;height:300px;background:${theme === 'dark' ? '#334155' : '#f1f5f9'};display:flex;align-items:center;justify-content:center;font-size:64px;border-radius:8px;color:#94a3b8;"><i class="bx bx-image"></i></div>`;
+                  }}
+                />
               </div>
             )}
-            
-            {berita.headline && (
-              <p style={styles.articleHeadline}>{berita.headline}</p>
-            )}
-            
-            <div style={styles.articleBody}>
-              {paragraphs.length > 0 ? (
-                paragraphs.map((paragraf, index) => (
-                  <p key={index} style={styles.articleParagraph}>{paragraf}</p>
-                ))
-              ) : (
-                <p style={styles.articleParagraph}>{berita.isi || 'Konten tidak tersedia.'}</p>
+
+            <div style={styles.articleContent}>
+              {scraping && (
+                <div style={styles.scrapingNotice}>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><i className="bx bx-loader-alt bx-spin"></i> Mengambil konten lengkap...</span>
+                </div>
               )}
-            </div>
-          </div>
-
-          <div style={styles.articleFooter}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-              <p style={styles.articleSource}>
-                📌 Sumber: {berita.sourceUrl ? (
-                  <a 
-                    href={berita.sourceUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{ color: '#2563eb', fontWeight: 600 }}
-                  >
-                    {berita.sourceName || 'Baca selengkapnya'}
-                  </a>
+              
+              {berita.headline && (
+                <p style={styles.articleHeadline}>{berita.headline}</p>
+              )}
+              
+              <div ref={articleBodyRef} style={styles.articleBody}>
+                {paragraphs.length > 0 ? (
+                  paragraphs.map((paragraf, index) => (
+                    <p key={index} style={styles.articleParagraph}>{paragraf}</p>
+                  ))
                 ) : (
-                  berita.sourceName || 'Unknown'
+                  <p style={styles.articleParagraph}>{berita.isi || 'Konten tidak tersedia.'}</p>
                 )}
-              </p>
-              <p style={styles.articleViews}>👁️ {berita.views || 0} kali dibaca</p>
+              </div>
             </div>
-          </div>
 
-          {/* Tombol ke sumber asli */}
-          {berita.sourceUrl && (
-            <div style={{ padding: '0 28px 28px' }}>
-              <a 
-                href={berita.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-block',
-                  padding: '12px 28px',
-                  background: '#2563eb',
-                  color: 'white',
-                  borderRadius: '10px',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  transition: 'all 0.3s',
-                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
-                  width: '100%',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = '#1d4ed8';
-                  e.target.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = '#2563eb';
-                  e.target.style.transform = 'translateY(0)';
-                }}
-              >
-                📖 Baca Selengkapnya di {berita.sourceName || 'Sumber Asli'}
-              </a>
+            <div style={styles.articleFooter}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                <p style={{ ...styles.articleSource, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="bx bx-link"></i> Sumber: {berita.sourceUrl ? (
+                    <a 
+                      href={berita.sourceUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ color: '#2563eb', fontWeight: 600 }}
+                    >
+                      {berita.sourceName || 'Baca selengkapnya'}
+                    </a>
+                  ) : (
+                    berita.sourceName || 'Unknown'
+                  )}
+                </p>
+                <p style={{ ...styles.articleViews, display: 'flex', alignItems: 'center', gap: '6px' }}><i className="bx bx-show"></i> {berita.views || 0} kali dibaca</p>
+              </div>
             </div>
-          )}
-        </article>
+            {berita.sourceUrl && (
+              <div style={{ padding: '0 28px 28px' }}>
+                <a 
+                  href={berita.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ ...styles.readMoreButton, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <i className="bx bx-book-open" style={{ fontSize: '18px' }}></i> Baca Selengkapnya di {berita.sourceName || 'Sumber Asli'}
+                </a>
+              </div>
+            )}
+          </article>
+          <div ref={commentsRef}><Comments newsId={berita.id} /></div>
+        </main>
+        <Footer />
       </div>
-      <Comments newsId={berita.id} />
     </>
   );
 }
 
-const styles = {
+const getStyles = (theme) => ({
+  pageWrapper: {
+    background: theme === 'dark' ? '#0f172a' : '#f5f7fa',
+    minHeight: '100vh',
+    color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
+  },
   container: {
     maxWidth: '800px',
     margin: '0 auto',
     padding: '20px',
-    minHeight: '100vh',
-    background: '#f5f7fa'
   },
   backLink: {
     display: 'inline-block',
@@ -245,11 +289,11 @@ const styles = {
     fontSize: '15px'
   },
   article: {
-    background: 'white',
+    background: theme === 'dark' ? '#1e293b' : 'white',
     borderRadius: '12px',
     boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
     overflow: 'hidden',
-    border: '1px solid #f1f5f9'
+    border: `1px solid ${theme === 'dark' ? '#334155' : '#f1f5f9'}`
   },
   articleHeader: {
     padding: '28px 28px 16px'
@@ -267,7 +311,7 @@ const styles = {
   articleTitle: {
     fontSize: '28px',
     fontWeight: 700,
-    color: '#0f172a',
+    color: theme === 'dark' ? 'white' : '#0f172a',
     lineHeight: 1.3,
     marginBottom: '12px'
   },
@@ -275,7 +319,7 @@ const styles = {
     display: 'flex',
     gap: '8px',
     fontSize: '14px',
-    color: '#94a3b8',
+    color: theme === 'dark' ? '#94a3b8' : '#64748b',
     flexWrap: 'wrap'
   },
   articleImageWrapper: {
@@ -292,8 +336,8 @@ const styles = {
     padding: '0 28px'
   },
   scrapingNotice: {
-    background: '#f0f9ff',
-    color: '#0369a1',
+    background: theme === 'dark' ? '#0c4a6e' : '#f0f9ff',
+    color: theme === 'dark' ? '#bae6fd' : '#0369a1',
     padding: '10px 16px',
     borderRadius: '8px',
     marginBottom: '16px',
@@ -302,14 +346,14 @@ const styles = {
   },
   articleHeadline: {
     fontSize: '18px',
-    color: '#475569',
+    color: theme === 'dark' ? '#cbd5e1' : '#475569',
     lineHeight: 1.7,
     marginBottom: '20px',
     paddingBottom: '20px',
-    borderBottom: '2px solid #f1f5f9'
+    borderBottom: `2px solid ${theme === 'dark' ? '#334155' : '#f1f5f9'}`
   },
   articleBody: {
-    color: '#334155',
+    color: theme === 'dark' ? '#e2e8f0' : '#334155',
     lineHeight: 1.8
   },
   articleParagraph: {
@@ -319,20 +363,33 @@ const styles = {
   },
   articleFooter: {
     padding: '16px 28px 12px',
-    borderTop: '1px solid #f1f5f9',
+    borderTop: `1px solid ${theme === 'dark' ? '#334155' : '#f1f5f9'}`,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: '8px',
     fontSize: '14px',
-    color: '#94a3b8'
+    color: theme === 'dark' ? '#94a3b8' : '#64748b'
   },
   articleSource: {
-    color: '#475569'
+    color: theme === 'dark' ? '#cbd5e1' : '#475569'
   },
   articleViews: {
-    color: '#94a3b8'
+    color: theme === 'dark' ? '#94a3b8' : '#64748b'
+  },
+  readMoreButton: {
+    display: 'inline-block',
+    padding: '12px 28px',
+    background: '#2563eb',
+    color: 'white',
+    borderRadius: '10px',
+    textDecoration: 'none',
+    fontWeight: 600,
+    transition: 'all 0.3s',
+    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+    width: '100%',
+    textAlign: 'center'
   },
   loadingContainer: {
     display: 'flex',
@@ -340,13 +397,13 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '100vh',
-    background: '#f5f7fa',
+    background: theme === 'dark' ? '#0f172a' : '#f5f7fa',
     gap: '12px'
   },
   loadingSpinner: {
     width: '40px',
     height: '40px',
-    border: '4px solid #e2e8f0',
+    border: `4px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
     borderTop: '4px solid #2563eb',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite'
@@ -358,7 +415,7 @@ const styles = {
     justifyContent: 'center',
     minHeight: '100vh',
     gap: '12px',
-    background: '#f5f7fa',
+    background: theme === 'dark' ? '#0f172a' : '#f5f7fa',
     padding: '20px'
   },
   backButton: {
@@ -369,4 +426,4 @@ const styles = {
     textDecoration: 'none',
     fontWeight: 500
   }
-};
+});
