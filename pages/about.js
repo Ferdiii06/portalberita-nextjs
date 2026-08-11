@@ -74,9 +74,9 @@ export default function About() {
       <main className="bg-slate-50 dark:bg-slate-900 min-h-screen py-14 transition-colors duration-300">
         <div className="mx-auto max-w-5xl px-5">
           <section className="rounded-[32px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 shadow-sm transition-colors duration-300">
-            <h1 ref={headingRef} className="text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-5xl">Tentang Portal Berita</h1>
+            <h1 ref={headingRef} className="text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-5xl">Tentang Insight Berita</h1>
             <p className="mt-6 text-lg leading-8 text-slate-700 dark:text-slate-300">
-              Portal Berita adalah platform berita modern yang dirancang untuk menghadirkan informasi secara cepat, akurat, dan ringkas.
+              Insight Berita adalah platform berita modern yang dirancang untuk menghadirkan informasi secara cepat, akurat, dan ringkas.
               Dibangun dengan Next.js, Tailwind CSS, dan arsitektur front-end ringan, portal ini mengutamakan performa, aksesibilitas, dan
               pengalaman membaca yang lancar di berbagai ukuran layar.
             </p>
