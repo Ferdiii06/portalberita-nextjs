@@ -2,7 +2,9 @@
 import { fetchAllRssFeeds } from '../../../lib/rssFetcher.js';
 
 export default async function handler(req, res) {
-  const secret = req.query.secret || req.headers['x-cron-secret'];
+  const authHeader = req.headers['authorization'];
+  const bearerSecret = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null;
+  const secret = req.query.secret || req.headers['x-cron-secret'] || bearerSecret;
   
   if (secret !== process.env.CRON_SECRET) {
     return res.status(401).json({ 
