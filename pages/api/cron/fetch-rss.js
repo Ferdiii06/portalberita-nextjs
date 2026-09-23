@@ -2,12 +2,10 @@
 import { fetchAllRssFeeds } from '../../../lib/rssFetcher.js';
 
 export default async function handler(req, res) {
-  const authHeader = req.headers['authorization'];
-  const bearerSecret = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null;
-  const secret = req.query.secret || req.headers['x-cron-secret'] || bearerSecret;
+  const secret = req.query.secret || req.headers['x-cron-secret'];
   const expectedSecret = process.env.CRON_SECRET || 'koderahasiaportalberita123';
   
-  if (secret !== expectedSecret) {
+  if (secret !== expectedSecret && req.headers['authorization'] !== `Bearer ${expectedSecret}`) {
     return res.status(401).json({ 
       success: false, 
       error: 'Unauthorized' 
@@ -23,9 +21,9 @@ export default async function handler(req, res) {
 
   try {
     console.log('🔄 Cron job started...');
-    const result = await fetchAllRssFeeds();
+    const result = await fetchAllRssFeeds({ fast: true });
     
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       ...result,
       message: 'RSS fetch completed successfully'
