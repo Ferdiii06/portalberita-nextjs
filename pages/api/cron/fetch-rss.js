@@ -5,8 +5,9 @@ export default async function handler(req, res) {
   const authHeader = req.headers['authorization'];
   const bearerSecret = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null;
   const secret = req.query.secret || req.headers['x-cron-secret'] || bearerSecret;
+  const expectedSecret = process.env.CRON_SECRET || 'koderahasiaportalberita123';
   
-  if (secret !== process.env.CRON_SECRET) {
+  if (secret !== expectedSecret) {
     return res.status(401).json({ 
       success: false, 
       error: 'Unauthorized' 
