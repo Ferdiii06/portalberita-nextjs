@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/fetch-rss?secret=koderahasiaportalberita123",
+      "schedule": "0 */3 * * *"
+    }
+  ]
+}
