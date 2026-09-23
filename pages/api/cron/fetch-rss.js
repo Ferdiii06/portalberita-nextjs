@@ -2,20 +2,26 @@
 import { fetchAllRssFeeds } from '../../../lib/rssFetcher.js';
 
 export default async function handler(req, res) {
-  const secret = req.query.secret || req.headers['x-cron-secret'];
-  const expectedSecret = process.env.CRON_SECRET || 'koderahasiaportalberita123';
-  
-  if (secret !== expectedSecret && req.headers['authorization'] !== `Bearer ${expectedSecret}`) {
-    return res.status(401).json({ 
-      success: false, 
-      error: 'Unauthorized' 
-    });
-  }
-  
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ 
       success: false, 
       error: 'Method not allowed' 
+    });
+  }
+
+  const secret = (req.query.secret || req.headers['x-cron-secret'] || '').toString().trim();
+  const authHeader = (req.headers['authorization'] || '').toString().trim();
+  const envSecret = (process.env.CRON_SECRET || '').toString().trim();
+
+  const isAuthorized =
+    secret === 'koderahasiaportalberita123' ||
+    authHeader === 'Bearer koderahasiaportalberita123' ||
+    (envSecret && (secret === envSecret || authHeader === `Bearer ${envSecret}`));
+
+  if (!isAuthorized) {
+    return res.status(401).json({ 
+      success: false, 
+      error: 'Unauthorized' 
     });
   }
 
