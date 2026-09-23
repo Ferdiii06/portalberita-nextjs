@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useNews } from '../context/NewsContext';
+import MicroDataBar from './MicroDataBar';
+import BreakingTickerMarquee from './BreakingTickerMarquee';
 
 const CATEGORIES = [
   { id: 'semua', label: 'Terbaru' },
@@ -41,16 +43,11 @@ export default function Header() {
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      {/* Top utility bar */}
-      <div className="hidden sm:block border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-between items-center text-[11px] font-medium text-gray-500 uppercase tracking-widest">
-          <div>{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
-          <div className="flex gap-6">
-            <Link href="/about" className="hover:text-gray-900 transition-colors">Tentang Redaksi</Link>
-            <Link href="/arsip" className="hover:text-gray-900 transition-colors">Arsip Digital</Link>
-          </div>
-        </div>
-      </div>
+      {/* Fitur 2: Micro Data Bar (Kurs, Bursa, Cuaca, Kalender) */}
+      <MicroDataBar />
+
+      {/* Fitur 1: Breaking Ticker Marquee */}
+      <BreakingTickerMarquee />
 
       {/* Main header (Logo & Search) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex flex-col md:flex-row justify-between items-center gap-6">
